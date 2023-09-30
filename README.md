@@ -1,6 +1,7 @@
 # RNA Reactivity Prediction Model
 
 This repository contains Python code to predict the reactivity of RNA sequences to chemical modifiers DMS and 2A3.
+The Kaggle competition: [RNA folding competition](https://www.kaggle.com/competitions/stanford-ribonanza-rna-folding)
 
 ## Overview
 
@@ -34,7 +35,7 @@ The task involves predicting the reactivity of RNA sequences based on features s
 
 ## Author
 
-[Your Name]
+Leonardo Kanashiro Felizardo
 
 ## License
 
