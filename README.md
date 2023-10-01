@@ -16,19 +16,19 @@ This repository contains a specialized implementation for predicting RNA reactiv
 
 ## Directory Structure
 
-\`\`\`
+```
 code/
 |-- rna_model.py
 |-- run_model.py
-\`\`\`
+```
 
 ## Installation
 
 To install the required packages, run:
 
-\`\`\`bash
+```bash
 pip install torch torch-geometric pandas numpy scikit-learn tqdm polars
-\`\`\`
+```
 
 ## How to Run
 
@@ -36,9 +36,9 @@ pip install torch torch-geometric pandas numpy scikit-learn tqdm polars
 2. Update the `data_path` in `run_model.py` to point to your Parquet files.
 3. Run `run_model.py` to train the model, perform inference, and generate the submission file.
 
-\`\`\`bash
+```bash
 python run_model.py
-\`\`\`
+```
 
 ## Code Explanation
 
