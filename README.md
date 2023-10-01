@@ -1,37 +1,60 @@
 # RNA Reactivity Prediction Model
 
-This repository contains Python code to predict the reactivity of RNA sequences to chemical modifiers DMS and 2A3.
-The Kaggle competition: [RNA folding competition](https://www.kaggle.com/competitions/stanford-ribonanza-rna-folding)
-
 ## Overview
 
-The task involves predicting the reactivity of RNA sequences based on features such as the RNA sequence, experiment type, dataset name, etc. The target variable is an array of floating-point numbers representing the reactivity of each RNA sequence.
+This repository contains a specialized implementation for predicting RNA reactivity using Graph Neural Networks (GNN) built on PyTorch and PyTorch Geometric. This project was inspired by the Kaggle competition [RNA folding competition](https://www.kaggle.com/competitions/stanford-ribonanza-rna-folding).
 
 ## Dependencies
 
-- pandas
-- numpy
+- PyTorch
+- PyTorch Geometric
+- Pandas
+- NumPy
 - scikit-learn
+- tqdm
+- polars
+
+## Directory Structure
+
+\`\`\`
+code/
+|-- rna_model.py
+|-- run_model.py
+\`\`\`
+
+## Installation
+
+To install the required packages, run:
+
+\`\`\`bash
+pip install torch torch-geometric pandas numpy scikit-learn tqdm polars
+\`\`\`
 
 ## How to Run
 
-1. Place your `train_data.csv` and `test_data.csv` in a directory.
-2. Update the `train_file_path` and `test_file_path` in the Python code to point to your CSV files.
-3. Run the Python script to train the model and make predictions.
+1. Place your `train_data.parquet` and `test_sequences.parquet` in a directory.
+2. Update the `data_path` in `run_model.py` to point to your Parquet files.
+3. Run `run_model.py` to train the model, perform inference, and generate the submission file.
+
+\`\`\`bash
+python run_model.py
+\`\`\`
 
 ## Code Explanation
 
-### Functions
+### Classes and Functions
 
-- `read_and_preprocess_data(file_path)`: Reads and preprocesses the data from a given CSV file.
-- `train_model(train_file_path)`: Trains a linear regression model using the data from `train_file_path`.
-- `test_model(model, test_file_path, submission_file_path)`: Tests the model on new data and outputs the results to `submission_file_path`.
+- `SimpleGraphDataset`: A custom PyTorch Geometric Dataset class for loading and transforming the RNA sequence data.
+- `RNAPrediction`: Main class containing methods for training, inference, and submission file creation.
+- `train_model`: Trains the EdgeCNN model and performs validation.
+- `inference`: Performs inference on the test data.
+- `save_model` and `load_model`: Methods for saving and loading the trained model.
 
 ### Steps
 
-1. **Data Preprocessing**: The `read_and_preprocess_data` function takes care of reading the data and one-hot encoding the categorical variables.
-2. **Model Training**: The `train_model` function trains a Linear Regression model and validates it using a part of the training data.
-3. **Model Testing & Submission**: The `test_model` function makes predictions on the test data and saves them to a CSV file.
+1. **Data Preprocessing**: `SimpleGraphDataset` reads the Parquet files and transforms the sequence data into graph form. It also handles one-hot encoding of the RNA sequence and constructs edge indices for the graph.
+2. **Model Training**: `train_model` method is responsible for training the EdgeCNN model using the Adam optimizer. It also performs validation and saves the best model.
+3. **Inference & Submission**: `inference` method generates the predictions for the test set. `save_submission` method creates the submission file in the required format.
 
 ## Author
 
