@@ -1,7 +1,7 @@
 import torch
 import os
 from torch.utils.data import random_split
-from torch_geometric.data import Data, Dataset, DataLoader
+from torch_geometric.data import Data, DataLoader
 from torch_geometric.nn.models import EdgeCNN
 import torch.nn.functional as F
 from sklearn.preprocessing import OneHotEncoder
@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 
 class DataConverter:
-    
+    # This class is used to convert the data from csv to parquet.
     @staticmethod
     def to_parquet(csv_file, parquet_file):
         dummy_df = pl.scan_csv(csv_file)
@@ -33,8 +33,6 @@ class DataConverter:
                 compression='uncompressed',
                 row_group_size=10,
         )
-
-
 
 class SimpleGraphDataset():
     def __init__(self, parquet_name, edge_distance=5, process_type = 'train', root=None, transform=None, pre_transform=None, pre_filter=None):
@@ -82,7 +80,8 @@ class SimpleGraphDataset():
         return np.hstack(connections)
 
     def parse_row(self, idx):
-        if self.process_type == 'train':
+        # Parse row
+        if self.process_type == 'train': # For training
             sequence_row = self.sequence_df.row(idx)
             reactivity_row = self.reactivity_df.row(idx)
             sequence = np.array(list(sequence_row[0])).reshape(-1, 1)
@@ -97,7 +96,8 @@ class SimpleGraphDataset():
             node_features = torch.Tensor(encoded_sequence)
             targets = torch.Tensor(reactivity)
             return Data(x=node_features, edge_index=edge_index, y=targets, valid_mask=torch_valid_mask)
-        elif self.process_type == 'test':
+        
+        elif self.process_type == 'test': # For inference
             sequence_row = self.sequence_df.row(idx)  
             id_min = self.id_min_df.row(idx)[0]
             sequence = np.array(list(sequence_row[0])).reshape(-1, 1)
@@ -208,15 +208,16 @@ class RNAPrediction:
 
     def inference(self):
         infer_dataset = self.SimpleGraphDataset(parquet_name=self.test_parquet_file, edge_distance=self.edge_distance, process_type = 'test')
-        infer_dataloader = DataLoader(infer_dataset, batch_size=128, shuffle=False, num_workers=2)
+        infer_dataloader = DataLoader(infer_dataset, batch_size=128, shuffle=False, num_workers=4)
         self.model.eval().to(self.device)
         ids = np.empty(shape=(0, 1), dtype=int)
         preds = np.empty(shape=(0, 1), dtype=np.float32)
         for batch in tqdm(infer_dataloader):
             batch = batch.to(self.device)
             out = self.model(batch.x, batch.edge_index).detach().cpu().numpy()
+            rounded_out = np.round(out, 4)  # Rounding to 4 decimal places
             ids = np.append(ids, batch.ids.detach().cpu().numpy())
-            preds = np.append(preds, out)
+            preds = np.append(preds, rounded_out)  # Using rounded_out instead of out
         self.inference_ids = ids
         self.inference_preds = preds
 
