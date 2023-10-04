@@ -1,5 +1,5 @@
 # Description: It is used to convert the data from csv to parquet.
-from rna_model import DataConverter
+from code.rna_gnn import DataConverter
 
 # Usage
 data_path = 'C:\\Users\\leona\\Desktop\\RNA data'

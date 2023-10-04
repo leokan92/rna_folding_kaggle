@@ -1,17 +1,17 @@
 import torch
-import os
+import os, gc
+import pandas as pd
+import numpy as np
+import torch
+import torch.nn as nn
 from torch.utils.data import random_split
 from torch_geometric.data import Data, DataLoader
 from torch_geometric.nn.models import EdgeCNN
 import torch.nn.functional as F
 from sklearn.preprocessing import OneHotEncoder
-import numpy as np
-import pandas as pd
 import polars as pl
-import zipfile
 import re
 from tqdm import tqdm
-
 
 class DataConverter:
     # This class is used to convert the data from csv to parquet.
@@ -121,7 +121,7 @@ class SimpleGraphDataset():
     def get(self, idx):
         return self.parse_row(idx)
 
-class RNAPrediction:
+class RNAGraphModel:
     
     def __init__(self, train_parquet_file, test_parquet_file, edge_distance=4):
         self.train_parquet_file = train_parquet_file
@@ -149,7 +149,7 @@ class RNAPrediction:
         generator1 = torch.Generator().manual_seed(42)
         len_full_train_dataset = full_train_dataset.len()  # Assuming you've defined __len__ in your Dataset class
         
-        len_train_dataset = int(0.7 * len_full_train_dataset)
+        len_train_dataset = int(0.9 * len_full_train_dataset)
         len_val_dataset = len_full_train_dataset - len_train_dataset
 
         train_dataset, val_dataset = random_split(full_train_dataset, [len_train_dataset, len_val_dataset], generator=generator1)
@@ -170,7 +170,8 @@ class RNAPrediction:
                 optimizer.zero_grad()
                 out = self.model(batch.x, batch.edge_index)
                 out = torch.squeeze(out)
-                loss = self.loss_fn(out[batch.valid_mask], batch.y[batch.valid_mask])
+                loss = self.mae_fn(out[batch.valid_mask], batch.y[batch.valid_mask])
+                #loss = self.loss_fn(out[batch.valid_mask], batch.y[batch.valid_mask])
                 loss.backward()
                 optimizer.step()
 
@@ -189,7 +190,7 @@ class RNAPrediction:
 
             mean_val_loss = np.mean(val_losses)
             print(f"Epoch {epoch} val loss: ", np.mean(mean_val_loss))
-            print(f"Epoch {epoch} val mae: ", np.mean(val_mae))
+            print(f"Epoch {epoch} val mae: ", np.mean(mae))
             
             # Save model if validation loss is improved
             if mean_val_loss < best_val_loss:
@@ -203,8 +204,6 @@ class RNAPrediction:
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
         self.model.eval()
-
-
 
     def inference(self):
         infer_dataset = self.SimpleGraphDataset(parquet_name=self.test_parquet_file, edge_distance=self.edge_distance, process_type = 'test')
@@ -224,3 +223,4 @@ class RNAPrediction:
     def save_submission(self, submission_file_path):
         submission_df = pl.DataFrame({"id": self.inference_ids, "reactivity_DMS_MaP": self.inference_preds, "reactivity_2A3_MaP": self.inference_preds})
         submission_df.write_csv(submission_file_path)
+

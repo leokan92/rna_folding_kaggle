@@ -1,13 +1,14 @@
-from rna_model import RNAPrediction
+from code.rna_gnn import RNAGraphModel
+from code.rna_transformer import RNATransformerModel
 
 if __name__ == "__main__":
     # Data path
     data_path = 'C:\\Users\\leona\\Desktop\\RNA data'
 
     # Initialize the RNAPrediction class
-    rna_prediction = RNAPrediction(train_parquet_file=f'{data_path}/train_data.parquet',
+    rna_prediction = RNAGraphModel(train_parquet_file=f'{data_path}/train_data.parquet',
                                    test_parquet_file=f'{data_path}/test_sequences.parquet',
-                                   edge_distance=5)
+                                   edge_distance=4)
     
     # Train the model
     rna_prediction.train_model(n_epochs=10)
